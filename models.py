@@ -5,7 +5,7 @@ import os
 
 class Tournois:
     """Classe des tournois"""
-    def __init__(self, nom, lieu, date, nb_tours=4):
+    def __init__(self, nom, lieu, date, nb_tours=4, description="", joueurs=[]):
         self.nom = nom
         self.lieu = lieu
         self.date = date
@@ -13,8 +13,11 @@ class Tournois:
         #self.tourne = tourne
         #self.joueurs = joueurs
         #self.controle_du_temps = controle_du_temps
-        self.description = ""
-        self.joueurs = []
+        self.description = description
+        self.joueurs = joueurs
+
+    #def __str__(self):
+    #    return f"{self.nom} - {self.lieu} - {self.date} - {self.sexe}"
 
 
 class Joueur:

@@ -21,7 +21,17 @@ class View:
         nom = input("entrez le nom du tournois: ")
         lieu = input("entrez le lieu du tournois: ")
         date = input("entrez la date du tournois: ")
-        return (nom, lieu, date)
+        data_tournois = {"nom": nom, "lieu": lieu, "date": date}
+        return data_tournois
+
+    def input_data_joueurs(self):
+        """Prend les données des tournois et les envoie au controleur"""
+        nom = input("entrez le nom du joueur: ")
+        prenom = input("entrez le prénom du joueur: ")
+        naissance = input("entrez la date de naissance du joueur: ")
+        sexe = input("entrez le sexe du joueur: ")
+        data_joueur = {"nom": nom, "prenom": prenom, "naissance": naissance, "sexe": sexe}
+        return data_joueur
 
 
 def menu_principal():
