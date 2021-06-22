@@ -33,6 +33,23 @@ class View:
         data_joueur = {"nom": nom, "prenom": prenom, "naissance": naissance, "sexe": sexe}
         return data_joueur
 
+    def menu_principal(self):
+        """Génère le menu principal"""
+        print("- Taper \"1\" pour lancer le tournois")
+        print("- Taper \"2\" pour passer au match suivant")
+        print("- Taper \"3\" pour modifier le classement des joueurs")
+        selection = input("selection: ")
+        return selection
+
+    def input_resultat_match(self, joueur1, joueur2):
+        """Demande à l'utilisateur le résultat d'un match et retourne ce résultat"""
+        print(f"joueur1: {joueur1}")
+        print(f"joueur2: {joueur2}")
+        resultat = None
+        while resultat != "1" and resultat != "2" and resultat != "0":
+            resultat = input("Tapez 1 si le joueur1 a gagné, 2 si le joueur 2 a gagné, ou 0 si match nul: ")
+        return resultat
+
 
 def menu_principal():
     """Génère le menu principal"""
