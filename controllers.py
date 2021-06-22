@@ -70,6 +70,7 @@ class Controller:
     def creation_paires(self):
         pass
 
+
     def resultat_match(self, tournois, joueur1, joueur2):
         """Retourne le résultat d'un match"""
         infos_joueur1 = db_joueurs.get(doc_id=joueur1)
@@ -87,5 +88,20 @@ class Controller:
             print("Match Nul")
             return 0
 
+    def attribution_points(self, joueur1, joueur2, resultat):
+        """Update les points des joueurs dans la db"""
+        joueur1_get = db_joueurs.get(doc_id=joueur1)
+        joueur2_get = db_joueurs.get(doc_id=joueur2)
+        if resultat == "player1 won":
+            add_point = joueur1_get["point"] + 1
+            db_tournois.update({"point": add_point}, joueur1_get)
+        elif resultat == "player2 won":
+            add_point = joueur2_get["point"] + 1
+            db_tournois.update({"point": add_point}, joueur2_get)
+        else:
+            add_point_j1 = joueur1_get["point"] + 0.5
+            add_point_j2 = joueur2_get["point"] + 0.5
+            db_tournois.update({"point": add_point_j1}, joueur1_get)
+            db_tournois.update({"point": add_point_j2}, joueur2_get)
 
 
