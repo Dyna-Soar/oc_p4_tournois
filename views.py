@@ -1,19 +1,10 @@
 from models import Tournois, Joueur, Match, Ronde
 from tinydb import TinyDB, Query
 from controllers import *
-#from controllers import Controller
 
 """type your views here"""
 
 db = TinyDB('db.json')
-list_joueurs = []
-list_tournois = []
-
-# Dictionnaires à sérialiser et à entrer dans la db, permettant de prendre les informations relatives au tournois
-dict_tournois = {}
-dict_joueurs = {}
-tuple_match = ()
-
 
 class View:
     def input_data_tournois(self):

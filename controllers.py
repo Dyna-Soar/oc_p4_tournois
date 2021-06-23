@@ -1,6 +1,4 @@
 from models import Tournois, Joueur, Match, Ronde
-#from views import View
-#import views
 from views import View
 from tinydb import TinyDB, Query
 import random
@@ -9,7 +7,6 @@ import random
 db = TinyDB('db.json')
 db_tournois = db.table('table_tournois')
 db_joueurs = db.table('table_joueurs')
-db_matchs = db.table("table_matchs")
 
 class Controller:
     """Classe controlleur"""
@@ -29,7 +26,7 @@ class Controller:
         tournois_id = len(db_tournois)
         Controller.creation_joueurs(self, tournois, tournois_info, tournois_id)
 
-        # Met les joueurs ensemble pour un premier tour
+        # Met les joueurs ensemble pour un premier tour (creation_paires_default())
         list_id_joueurs = []
         for i in range(len(db_joueurs)):
             list_id_joueurs.append(i+1)
@@ -42,6 +39,7 @@ class Controller:
             print(f"{joueur1} vs {joueur2}")
             # Get match result
             Controller.resultat_match(self, tournois, joueur1, joueur2)
+
 
 
     def creation_joueurs(self, tournois, tournois_info, tournois_id):
@@ -67,8 +65,22 @@ class Controller:
             # Update the db, in the current tournois, with the updated list of player indice that include the current appended player id
             db_tournois.update({"joueurs": tournois_append_player}, tournois_get.nom == tournois_info["nom"])
 
-    def creation_paires(self):
-        pass
+    def creation_paires_default(self, tournois):
+        """Met les joueurs ensemble pour un premier tour"""
+        list_id_joueurs = []
+        for i in range(len(db_joueurs)):
+            list_id_joueurs.append(i + 1)
+        print(list_id_joueurs)
+        while len(list_id_joueurs) > 0:
+            joueur1 = random.choice(list_id_joueurs)
+            list_id_joueurs.remove(joueur1)
+            joueur2 = random.choice(list_id_joueurs)
+            list_id_joueurs.remove(joueur2)
+            print(f"{joueur1} vs {joueur2}")
+            # Get match result
+            Controller.resultat_match(self, tournois, joueur1, joueur2)
+            # Add points into de the db
+            Controller.attribution_points(tournois, joueur1, joueur2)
 
 
     def resultat_match(self, tournois, joueur1, joueur2):
@@ -103,5 +115,13 @@ class Controller:
             add_point_j2 = joueur2_get["point"] + 0.5
             db_tournois.update({"point": add_point_j1}, joueur1_get)
             db_tournois.update({"point": add_point_j2}, joueur2_get)
+        return 1
+
+    def tour_suivant(self, tournois_id):
+        """Update de moins 1 le nombre de tours du tournois"""
+        tournois_get = db_tournois.get(doc_id=tournois_id)
+        nb_tours_diminue = tournois_get["nb_tours"] - 1
+        db_tournois.update({"nb_tours": nb_tours_diminue}, tournois_get)
+        return 1
 
 
