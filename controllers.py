@@ -31,9 +31,9 @@ class Controller:
         Controller.update_classement(self, tournois)
         Controller.creation_paires_classement(self, tournois)
         # Met les joueurs ensemble pour un premier tour (creation_paires_default())
-        while tournois_model.nb_tours > 0:
-            Controller.creation_paires_default(self, tournois)
-            Controller.tour_suivant(self, tournois_model, tournois_id)
+        #while tournois_model.nb_tours > 0:
+        #    Controller.creation_paires_default(self, tournois)
+        #    Controller.tour_suivant(self, tournois_model, tournois_id)
 
 
 
@@ -81,7 +81,10 @@ class Controller:
             Controller.attribution_points(tournois, joueur1, joueur2, resultat)
 
     def creation_paires_classement(self, tournois):
+        """Met les joueurs ensemble pour un premier tour, en fonction du classement"""
         list_classement_joueurs = []
+        joueur1_id = None
+        joueur2_id = None
         for player_id in range(len(db_joueurs)):
             player_id = player_id + 1
             infos_joueur = db_joueurs.get(doc_id=player_id)
@@ -92,6 +95,7 @@ class Controller:
         classement_sup = []
         classement_inf = []
         number_of_players = len(list_classement_joueurs)
+        # Algorithme divisant la liste générale en 2 listes: une supérieure et une inférieure
         while len(list_classement_joueurs) != 0:
             highest_rank = 10
             for i in range(len(list_classement_joueurs)):
@@ -107,6 +111,30 @@ class Controller:
                     break
         print(classement_sup)
         print(classement_inf)
+        # Algorithme de génération des paires par classement
+        while len(classement_sup) != 0:
+            highest_rank_sup = 100
+            highest_rank_inf = 100
+            for i in range(len(classement_sup)):
+                if classement_sup[i]["classement"] < highest_rank_sup:
+                    highest_rank_sup = classement_sup[i]["classement"]
+            for i in range(len(classement_inf)):
+                if classement_inf[i]["classement"] < highest_rank_inf:
+                    highest_rank_inf = classement_inf[i]["classement"]
+            for i in range(len(classement_sup)):
+                if classement_sup[i]["classement"] == highest_rank_sup:
+                    joueur1_id = classement_sup[i]["id"]
+                    classement_sup.remove(classement_sup[i])
+                    break
+            for i in range(len(classement_inf)):
+                if classement_inf[i]["classement"] == highest_rank_inf:
+                    joueur2_id = classement_inf[i]["id"]
+                    classement_inf.remove(classement_inf[i])
+                    break
+            resultat = Controller.resultat_match(self, tournois, joueur1_id, joueur2_id)
+            Controller.attribution_points(tournois, joueur1_id, joueur2_id, resultat)
+
+
 
     def creation_paires_points(self, tournois):
         pass
