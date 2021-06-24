@@ -28,31 +28,18 @@ class Controller:
         tournois_id = len(db_tournois)
         Controller.creation_joueurs(self, tournois, tournois_info, tournois_id, tournois_model)
 
+        Controller.update_classement(self, tournois)
+        Controller.creation_paires_classement(self, tournois)
         # Met les joueurs ensemble pour un premier tour (creation_paires_default())
-        #list_id_joueurs = []
-        #for i in range(len(db_joueurs)):
-        #    list_id_joueurs.append(i+1)
-        #print(list_id_joueurs)
-        #while len(list_id_joueurs) > 0:
-        #    joueur1 = random.choice(list_id_joueurs)
-        #    list_id_joueurs.remove(joueur1)
-        #    joueur2 = random.choice(list_id_joueurs)
-        #    list_id_joueurs.remove(joueur2)
-        #    print(f"{joueur1} vs {joueur2}")
-            # Get match result
-        #    resultat = Controller.resultat_match(self, tournois, joueur1, joueur2)
-        #    Controller.attribution_points(self, joueur1, joueur2, resultat)
-
         while tournois_model.nb_tours > 0:
             Controller.creation_paires_default(self, tournois)
             Controller.tour_suivant(self, tournois_model, tournois_id)
-            Controller.update_classement(self, tournois)
 
 
 
     def creation_joueurs(self, tournois, tournois_info, tournois_id, tournois_model):
         """Créer 8 joueurs pour le tournois"""
-        for i in range(2):
+        for i in range(4):
             # Prompt the user for player input via a function in the views.py
             joueur_info = tournois.input_data_joueurs()
             # Create an instance of player, called joueur_model, with the return value of joueur_info
@@ -93,6 +80,36 @@ class Controller:
             # Add points into de the db
             Controller.attribution_points(tournois, joueur1, joueur2, resultat)
 
+    def creation_paires_classement(self, tournois):
+        list_classement_joueurs = []
+        for player_id in range(len(db_joueurs)):
+            player_id = player_id + 1
+            infos_joueur = db_joueurs.get(doc_id=player_id)
+            dict_classement_joueurs = {}
+            dict_classement_joueurs["id"] = player_id
+            dict_classement_joueurs["classement"] = int(infos_joueur["classement"])
+            list_classement_joueurs.append(dict_classement_joueurs)
+        classement_sup = []
+        classement_inf = []
+        number_of_players = len(list_classement_joueurs)
+        while len(list_classement_joueurs) != 0:
+            highest_rank = 10
+            for i in range(len(list_classement_joueurs)):
+                if list_classement_joueurs[i]["classement"] < highest_rank:
+                    highest_rank = list_classement_joueurs[i]["classement"]
+            for i in range(len(list_classement_joueurs)):
+                if list_classement_joueurs[i]["classement"] == highest_rank:
+                    if len(list_classement_joueurs) <= number_of_players/2:
+                        classement_inf.append(list_classement_joueurs[i])
+                    else:
+                        classement_sup.append(list_classement_joueurs[i])
+                    list_classement_joueurs.remove(list_classement_joueurs[i])
+                    break
+        print(classement_sup)
+        print(classement_inf)
+
+    def creation_paires_points(self, tournois):
+        pass
 
     def resultat_match(self, tournois, joueur1, joueur2):
         """Retourne le résultat d'un match"""
@@ -144,7 +161,4 @@ class Controller:
         print(list_classement)
         for i in list_classement:
             db_joueurs.update({"classement": i["ranking"]}, Query().nom == i["name"])
-
-
-
 
