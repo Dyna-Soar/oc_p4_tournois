@@ -46,6 +46,7 @@ class Controller:
         while tournois_model.nb_tours > 0:
             Controller.creation_paires_default(self, tournois)
             Controller.tour_suivant(self, tournois_model, tournois_id)
+            Controller.update_classement(self, tournois)
 
 
 
@@ -135,6 +136,14 @@ class Controller:
         tournois_model.nb_tours = nb_tours_diminue
         db_tournois.update({"nb_tours": nb_tours_diminue}, Query().nom == tournois_get["nom"])
         return 1
+
+    def update_classement(self, tournois):
+        all_players = db_joueurs.all()
+        print(all_players)
+        list_classement = tournois.input_classement(all_players)
+        print(list_classement)
+        for i in list_classement:
+            db_joueurs.update({"classement": i["ranking"]}, Query().nom == i["name"])
 
 
 

@@ -41,6 +41,17 @@ class View:
             resultat = input("Tapez 1 si le joueur1 a gagné, 2 si le joueur 2 a gagné, ou 0 si match nul: ")
         return resultat
 
+    def input_classement(self, all_players):
+        list_classement = []
+        for i in range(len(all_players)):
+            dict_classement = {}
+            name_player = all_players[i]["nom"]
+            classement_player = input(f"Classement de {name_player}: ")
+            dict_classement["name"] = name_player
+            dict_classement["ranking"] = classement_player
+            list_classement.append(dict_classement)
+        return list_classement
+
 
 def menu_principal():
     """Génère le menu principal"""
