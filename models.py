@@ -1,5 +1,10 @@
+from tinydb import TinyDB, Query
+
 '''Docstring'''
 
+db = TinyDB('db.json')
+db_tournois = db.table('table_tournois')
+db_joueurs = db.table('table_joueurs')
 
 class Tournois:
     """Classe des tournois"""
@@ -14,6 +19,18 @@ class Tournois:
         self.description = description
         self.joueurs = joueurs
 
+    def insert_db_tournois(self):
+        db_tournois.insert(self.__dict__)
+
+    def update_db_tournois_joueurs(self):
+        tournois_get = Query()
+        db_tournois.update({"joueurs": self.joueurs}, tournois_get.nom == self.nom)
+
+    def update_db_tournois_nb_tours(self):
+        tournois_get = Query()
+        db_tournois.update({"nb_tours": self.nb_tours}, tournois_get.nom == self.nom)
+
+
     #def __str__(self):
     #    return f"{self.nom} - {self.lieu} - {self.date} - {self.sexe}"
 
@@ -27,6 +44,12 @@ class Joueur:
         self.sexe = sexe
         self.classement = classement
         self.point = point
+
+    def insert_db_joueur(self):
+        db_joueurs.insert(self.__dict__)
+
+    def update_db_joueur_point(self, id):
+        db_joueurs.update({"point": self.point}, db_joueurs.get(doc_id=id))
 
     #def complete(self):
     #    return format(self.nom, self.prenom, self.naissance, self.naissance, self.sexe, self.classement)
