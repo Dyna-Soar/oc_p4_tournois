@@ -35,8 +35,7 @@ class Controller:
         while tournois_model.nb_tours > 0:
             Controller.creation_paires_points(self, tournois)
             Controller.tour_suivant(self, tournois_model, tournois_id)
-
-
+        Controller.rapport(self, tournois)
 
     def creation_joueurs(self, tournois, tournois_info, tournois_id, tournois_model):
         """Créer 8 joueurs pour le tournois"""
