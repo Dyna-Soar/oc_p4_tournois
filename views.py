@@ -5,6 +5,9 @@ from controllers import *
 """type your views here"""
 
 db = TinyDB('db.json')
+db_tournois = db.table('table_tournois')
+db_joueurs = db.table('table_joueurs')
+db_matchs = db.table('table_matchs')
 
 class View:
     def input_data_tournois(self):
@@ -52,8 +55,23 @@ class View:
             list_classement.append(dict_classement)
         return list_classement
 
-    def rapport(self, rapport_final):
-        pass
+    def rapport(self, tournois, joueurs, matchs):
+        print(f"{tournois.nom} - {tournois.lieu} - {tournois.date} - {tournois.description}")
+        for i in range(len(joueurs)):
+            print(f"{joueurs[i].nom} - {joueurs[i].prenom} - {joueurs[i].naissance} - {joueurs[i].classement} - {joueurs[i].point}")
+        for i in range(len(matchs)):
+            joueur1 = db_joueurs.get(doc_id=matchs[i].joueur1)
+            joueur1_nom = joueur1["nom"]
+            joueur1_prenom = joueur1["prenom"]
+            joueur2 = db_joueurs.get(doc_id=matchs[i].joueur2)
+            joueur2_nom = joueur2["nom"]
+            joueur2_prenom = joueur2["prenom"]
+            if matchs[i].resultat == 1:
+                print(f"{joueur1_nom} {joueur1_prenom} a gagné contre {joueur2_nom} {joueur2_prenom}")
+            elif matchs[i].resultat == 2:
+                print(f"{joueur2_nom} {joueur2_prenom} a gagné contre {joueur1_nom} {joueur1_prenom}")
+            else:
+                print(f" Match Nul entre {joueur1_nom} {joueur1_prenom} et {joueur2_nom} {joueur2_prenom}")
 
 
 def menu_principal():

@@ -286,3 +286,9 @@ class Controller:
         for i in list_classement:
             db_joueurs.update({"classement": i["ranking"]}, Query().nom == i["name"])
 
+    def rapport(self, tournois):
+        tournois_all_data = db_tournois.all()
+        joueurs_all_data = db_joueurs.all()
+        matchs_all_data = db_matchs.all()
+        tournois.rapport(tournois=tournois_all_data, joueurs=joueurs_all_data, matchs=matchs_all_data)
+
