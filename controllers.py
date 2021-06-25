@@ -40,7 +40,7 @@ class Controller:
 
     def creation_joueurs(self, tournois, tournois_info, tournois_id, tournois_model):
         """Créer 8 joueurs pour le tournois"""
-        for i in range(4):
+        for i in range(8):
             # Prompt the user for player input via a function in the views.py
             joueur_info = tournois.input_data_joueurs()
             # Create an instance of player, called joueur_model, with the return value of joueur_info
