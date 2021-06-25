@@ -66,17 +66,13 @@ class View:
         for i in range(len(matchs)):
             View.round_display(self, i)
             joueur1 = db_joueurs.get(doc_id=matchs[i]['joueur1'])
-            joueur1_nom = joueur1["nom"]
-            joueur1_prenom = joueur1["prenom"]
             joueur2 = db_joueurs.get(doc_id=matchs[i]['joueur2'])
-            joueur2_nom = joueur2["nom"]
-            joueur2_prenom = joueur2["prenom"]
             if matchs[i]["resultat"] == "1":
-                print(f"{joueur1_nom} {joueur1_prenom} a gagné contre {joueur2_nom} {joueur2_prenom}")
+                print(f"{joueur1['nom']} {joueur1['prenom']} a gagné contre {joueur2['nom']} {joueur2['prenom']}")
             elif matchs[i]["resultat"] == "2":
-                print(f"{joueur2_nom} {joueur2_prenom} a gagné contre {joueur1_nom} {joueur1_prenom}")
+                print(f"{joueur2['nom']} {joueur2['prenom']} a gagné contre {joueur1['nom']} {joueur1['prenom']}")
             else:
-                print(f"Match Nul entre {joueur1_nom} {joueur1_prenom} et {joueur2_nom} {joueur2_prenom}")
+                print(f"Match Nul entre {joueur1['nom']} {joueur1['prenom']} et {joueur2['nom']} {joueur2['prenom']}")
 
     def round_display(self, i):
         if i == 0:
