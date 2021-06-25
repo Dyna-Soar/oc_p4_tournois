@@ -150,67 +150,81 @@ class Controller:
             dict_joueur["classement"] = int(infos_joueur["classement"])
             list_joueurs.append(dict_joueur)
         # Algorithme mettant les joueur ensemble en fonction des points
-        # First part for taking the highest point player p1 with the highest ranking
-        # First loop to find the highest number of points
-        highest_points = 0
-        for i in range(len(list_joueurs)):
-            if list_joueurs[i]["point"] > highest_points:
-                highest_points = list_joueurs[i]["point"]
-        duplicate_highest_point = 0
-        list_duplicate_point = []
-        for i in range(len(list_joueurs)):
-            if list_joueurs[i]["point"] == highest_points:
-                duplicate_highest_point += 1
-                list_duplicate_point.append(list_joueurs[i])
-        if duplicate_highest_point > 1:
+        while len(list_joueurs) > 0:
+            # First part for taking the highest point player p1 with the highest ranking
+            # First loop to find the highest number of points
+            highest_points = 0
+            for i in range(len(list_joueurs)):
+                if list_joueurs[i]["point"] > highest_points:
+                    highest_points = list_joueurs[i]["point"]
+            duplicate_highest_point = 0
+            list_duplicate_point = []
+            # Check for players with the same highest points
+            for i in range(len(list_joueurs)):
+                if list_joueurs[i]["point"] == highest_points:
+                    duplicate_highest_point += 1
+                    list_duplicate_point.append(list_joueurs[i])
+            # Path of Two or more players with the same nb of highest points
+            if duplicate_highest_point > 1:
+                highest_rank = 10
+                for i in range(len(list_duplicate_point)):
+                    if list_duplicate_point[i]["classement"] < highest_rank:
+                        highest_rank = list_duplicate_point[i]["classement"]
+                for i in range(len(list_duplicate_point)):
+                    if list_duplicate_point[i]["classement"] == highest_rank:
+                        joueur1 = list_duplicate_point[i]
+                        list_joueurs.remove(joueur1)
+                        break
+            # Path of unique player with the highest point
+            else:
+                joueur1 = list_duplicate_point[0]
+                list_joueurs.remove(joueur1)
+            print(joueur1)
+            print(list_joueurs)
+            # Find potential joueur2 to pair with joueur1
+            optimal_order_list_p2 = []
+            # First, check if already paired
+            for i in range(len(list_joueurs)):
+                if Controller.check_duplicate_match(self, joueur1, list_joueurs[i]) == "never played":
+                    optimal_order_list_p2.append(list_joueurs[i])
+            print(optimal_order_list_p2)
+            # Second, order by points
+            point_order_list_p2 = []
+            highest_points = 0
+            for i in range(len(optimal_order_list_p2)):
+                if optimal_order_list_p2[i]["point"] > highest_points:
+                    highest_points = optimal_order_list_p2[i]["point"]
+            for i in range(len(optimal_order_list_p2)):
+                if optimal_order_list_p2[i]["point"] == highest_points:
+                    point_order_list_p2.append(optimal_order_list_p2[i])
+            # Third, order by rank
             highest_rank = 10
-            for i in range(len(list_duplicate_point)):
-                if list_duplicate_point[i]["classement"] > highest_rank:
-                    highest_rank = list_duplicate_point[i]["classement"]
-            for i in range(len(list_duplicate_point)):
-                if list_duplicate_point[i]["classement"] == highest_rank:
-                    joueur1 = list_duplicate_point[i]
-                    list_joueurs.remove(joueur1)
+            for i in range(len(point_order_list_p2)):
+                if point_order_list_p2[i]["classement"] < highest_rank:
+                    highest_rank = point_order_list_p2[i]["classement"]
+            for i in range(len(point_order_list_p2)):
+                if point_order_list_p2[i]["classement"] == highest_rank:
+                    joueur2 = point_order_list_p2[i]
+                    list_joueurs.remove(joueur2)
                     break
-        else:
-            joueur1 = list_duplicate_point[0]
-            list_joueurs.remove(joueur1)
-        print(joueur1)
-        print(list_joueurs)
-        # Find potential joueur2 to pair with joueur1
-        optimal_order_list_p2 = []
-        # First, check if already paired
-        for i in range(len(list_joueurs)):
-            if Controller.check_duplicate_match(self, joueur1, list_joueurs[i]) == "never played":
-                optimal_order_list_p2.append(list_joueurs[i])
-        # Second, order by points
-        highest_points = 0
-        for i in range(len(optimal_order_list_p2)):
-            if optimal_order_list_p2[i]["point"] > highest_points:
-                highest_points = optimal_order_list_p2[i]["point"]
-        for i in range(len(optimal_order_list_p2)):
-            if optimal_order_list_p2[i]["point"] < highest_points:
-                optimal_order_list_p2.remove(optimal_order_list_p2[i])
-        # Third, order by rank
-        highest_rank = 10
-        for i in range(len(optimal_order_list_p2)):
-            if optimal_order_list_p2[i]["classement"] < highest_rank:
-                highest_rank = optimal_order_list_p2[i]["classement"]
-        for i in range(len(optimal_order_list_p2)):
-            if optimal_order_list_p2[i]["classement"] == highest_rank:
-                joueur2 = optimal_order_list_p2[i]
-        resultat = Controller.resultat_match(self, tournois, joueur1, joueur2)
-        Controller.attribution_points(self, joueur1, joueur2, resultat)
+            print(joueur2)
+            resultat = Controller.resultat_match(self, tournois, joueur1["id"], joueur2["id"])
+            Controller.attribution_points(self, joueur1["id"], joueur2["id"], resultat)
 
     def check_duplicate_match(self, joueur1, joueur2):
+        # Query for both players as player1
+        joueur1 = joueur1["id"]
+        joueur2 = joueur2["id"]
         query_matchs_j1 = db_matchs.search(Query()["joueur1"] == joueur1)
         query_matchs_j2 = db_matchs.search(Query()["joueur1"] == joueur2)
         print(query_matchs_j1)
         print(query_matchs_j2)
+        # Player 1 as P1 loop check
         for i in range(len(query_matchs_j1)):
             if query_matchs_j1[i]["joueur2"] == joueur2:
                 print("already played")
                 return "already played"
+        # Player 2 as P1 loop check
         for i in range(len(query_matchs_j2)):
             if query_matchs_j2[i]["joueur2"] == joueur1:
                 print("already played")

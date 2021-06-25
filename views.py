@@ -52,6 +52,9 @@ class View:
             list_classement.append(dict_classement)
         return list_classement
 
+    def rapport(self, rapport_final):
+        pass
+
 
 def menu_principal():
     """Génère le menu principal"""
