@@ -7,7 +7,7 @@ import random
 db = TinyDB('db.json')
 db_tournois = db.table('table_tournois')
 db_joueurs = db.table('table_joueurs')
-
+db_matchs = db.table('table_matchs')
 
 class Controller:
     """Classe controlleur"""
@@ -30,10 +30,11 @@ class Controller:
 
         Controller.update_classement(self, tournois)
         Controller.creation_paires_classement(self, tournois)
-        # Met les joueurs ensemble pour un premier tour (creation_paires_default())
-        #while tournois_model.nb_tours > 0:
-        #    Controller.creation_paires_default(self, tournois)
-        #    Controller.tour_suivant(self, tournois_model, tournois_id)
+        Controller.tour_suivant(self, tournois_model, tournois_id)
+        # Met les joueurs ensemble pour tous les autres tours (creation_paires_default())
+        while tournois_model.nb_tours > 0:
+            Controller.creation_paires_points(self, tournois)
+            Controller.tour_suivant(self, tournois_model, tournois_id)
 
 
 
@@ -132,12 +133,90 @@ class Controller:
                     classement_inf.remove(classement_inf[i])
                     break
             resultat = Controller.resultat_match(self, tournois, joueur1_id, joueur2_id)
-            Controller.attribution_points(tournois, joueur1_id, joueur2_id, resultat)
-
+            Controller.attribution_points(self, joueur1_id, joueur2_id, resultat)
 
 
     def creation_paires_points(self, tournois):
-        pass
+        """Creation de paires en fonction des points, et classement, sans répétition d'instances de matchs"""
+        list_joueurs = []
+        joueur1 = None
+        joueur2 = None
+        for player_id in range(len(db_joueurs)):
+            player_id = player_id + 1
+            infos_joueur = db_joueurs.get(doc_id=player_id)
+            dict_joueur = {}
+            dict_joueur["id"] = player_id
+            dict_joueur["point"] = infos_joueur["point"]
+            dict_joueur["classement"] = int(infos_joueur["classement"])
+            list_joueurs.append(dict_joueur)
+        # Algorithme mettant les joueur ensemble en fonction des points
+        # First part for taking the highest point player p1 with the highest ranking
+        # First loop to find the highest number of points
+        highest_points = 0
+        for i in range(len(list_joueurs)):
+            if list_joueurs[i]["point"] > highest_points:
+                highest_points = list_joueurs[i]["point"]
+        duplicate_highest_point = 0
+        list_duplicate_point = []
+        for i in range(len(list_joueurs)):
+            if list_joueurs[i]["point"] == highest_points:
+                duplicate_highest_point += 1
+                list_duplicate_point.append(list_joueurs[i])
+        if duplicate_highest_point > 1:
+            highest_rank = 10
+            for i in range(len(list_duplicate_point)):
+                if list_duplicate_point[i]["classement"] > highest_rank:
+                    highest_rank = list_duplicate_point[i]["classement"]
+            for i in range(len(list_duplicate_point)):
+                if list_duplicate_point[i]["classement"] == highest_rank:
+                    joueur1 = list_duplicate_point[i]
+                    list_joueurs.remove(joueur1)
+                    break
+        else:
+            joueur1 = list_duplicate_point[0]
+            list_joueurs.remove(joueur1)
+        print(joueur1)
+        print(list_joueurs)
+        # Find potential joueur2 to pair with joueur1
+        optimal_order_list_p2 = []
+        # First, check if already paired
+        for i in range(len(list_joueurs)):
+            if Controller.check_duplicate_match(self, joueur1, list_joueurs[i]) == "never played":
+                optimal_order_list_p2.append(list_joueurs[i])
+        # Second, order by points
+        highest_points = 0
+        for i in range(len(optimal_order_list_p2)):
+            if optimal_order_list_p2[i]["point"] > highest_points:
+                highest_points = optimal_order_list_p2[i]["point"]
+        for i in range(len(optimal_order_list_p2)):
+            if optimal_order_list_p2[i]["point"] < highest_points:
+                optimal_order_list_p2.remove(optimal_order_list_p2[i])
+        # Third, order by rank
+        highest_rank = 10
+        for i in range(len(optimal_order_list_p2)):
+            if optimal_order_list_p2[i]["classement"] < highest_rank:
+                highest_rank = optimal_order_list_p2[i]["classement"]
+        for i in range(len(optimal_order_list_p2)):
+            if optimal_order_list_p2[i]["classement"] == highest_rank:
+                joueur2 = optimal_order_list_p2[i]
+        resultat = Controller.resultat_match(self, tournois, joueur1, joueur2)
+        Controller.attribution_points(self, joueur1, joueur2, resultat)
+
+    def check_duplicate_match(self, joueur1, joueur2):
+        query_matchs_j1 = db_matchs.search(Query()["joueur1"] == joueur1)
+        query_matchs_j2 = db_matchs.search(Query()["joueur1"] == joueur2)
+        print(query_matchs_j1)
+        print(query_matchs_j2)
+        for i in range(len(query_matchs_j1)):
+            if query_matchs_j1[i]["joueur2"] == joueur2:
+                print("already played")
+                return "already played"
+        for i in range(len(query_matchs_j2)):
+            if query_matchs_j2[i]["joueur2"] == joueur1:
+                print("already played")
+                return "already played"
+        print("never played")
+        return "never played"
 
     def resultat_match(self, tournois, joueur1, joueur2):
         """Retourne le résultat d'un match"""
@@ -146,6 +225,9 @@ class Controller:
         infos_joueur2 = db_joueurs.get(doc_id=joueur2)
         infos_joueur2 = infos_joueur2["nom"] + " " + infos_joueur2["prenom"]
         resultat = tournois.input_resultat_match(infos_joueur1, infos_joueur2)
+        match_model = Match(joueur1, joueur2, resultat)
+        # Store the instance created, called match_model, in the db
+        db_matchs.insert(match_model.__dict__)
         if resultat == "1":
             print(f"le joueur {infos_joueur1} a gagné")
             return 1
