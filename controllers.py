@@ -1,8 +1,6 @@
-from models import Tournois, Joueur, Match, Ronde
+from models import Tournois, Joueur, Match
 from views import View
 from tinydb import TinyDB, Query
-import random
-
 
 db = TinyDB('db.json')
 db_tournois = db.table('table_tournois')
@@ -16,7 +14,7 @@ class Controller:
         tournois = View()
         # Créer le tournois
         tournois_model = Controller.creation_tournois(self, tournois)
-        # Create th 8 players of the tournament by Calling the creation_joueurs function
+        # Create the 8 players of the tournament by Calling the creation_joueurs function
         # Get id of latest tournament created
         tournois_id = len(db_tournois)
         Controller.creation_joueurs(self, tournois, tournois_id, tournois_model)
@@ -27,21 +25,8 @@ class Controller:
         while tournois_model.nb_tours > 0:
             Controller.creation_paires_points(self, tournois)
             Controller.tour_suivant(self, tournois_model, tournois_id)
+        Controller.update_classement(self, tournois)
         Controller.rapport(self, tournois)
-
-    def reload_db_state(self):
-        if len(db_tournois) == 1:
-            if len(db_joueurs) < 8:
-                index_players = len(db_joueurs)
-                print("reload at n player creation")
-            if len(db_joueurs) == 8:
-                if len(db_matchs) == 16:
-                    print("reload at result display")
-                elif len(db_matchs) < 16:
-                    index_matchs = len(db_matchs)
-                    print("reload at n match creation")
-        elif len(db_tournois) == 0:
-            print("reload at tournament creation")
 
     def creation_tournois(self, tournois):
         """Créer le tournois"""
@@ -75,7 +60,6 @@ class Controller:
             # Update the db, in the current tournois, with the updated list of player indice that include the current appended player id
             tournois_model.joueurs = tournois_append_player
             tournois_model.update_db_tournois_joueurs()
-            print(tournois_model.__dict__)
 
     def creation_paires_classement(self, tournois):
         """Met les joueurs ensemble pour un premier tour, en fonction du classement"""
@@ -150,17 +134,9 @@ class Controller:
 
     def creation_paires_points(self, tournois):
         """Creation de paires en fonction des points, et classement, sans répétition d'instances de matchs"""
-        list_joueurs = []
         joueur1 = None
         joueur2 = None
-        for player_id in range(len(db_joueurs)):
-            player_id = player_id + 1
-            infos_joueur = db_joueurs.get(doc_id=player_id)
-            dict_joueur = {}
-            dict_joueur["id"] = player_id
-            dict_joueur["point"] = infos_joueur["point"]
-            dict_joueur["classement"] = int(infos_joueur["classement"])
-            list_joueurs.append(dict_joueur)
+        list_joueurs = Controller.algo_classement_joueurs_points(self)
         # Algorithme mettant les joueur ensemble en fonction des points
         while len(list_joueurs) > 0:
             # First part for taking the highest point player p1 with the highest ranking
@@ -191,15 +167,12 @@ class Controller:
             else:
                 joueur1 = list_duplicate_point[0]
                 list_joueurs.remove(joueur1)
-            print(joueur1)
-            print(list_joueurs)
             # Find potential joueur2 to pair with joueur1
             optimal_order_list_p2 = []
             # First, check if already paired
             for i in range(len(list_joueurs)):
                 if Controller.check_duplicate_match(self, joueur1, list_joueurs[i]) == "never played":
                     optimal_order_list_p2.append(list_joueurs[i])
-            print(optimal_order_list_p2)
             # Second, order by points
             point_order_list_p2 = []
             highest_points = 0
@@ -219,29 +192,36 @@ class Controller:
                     joueur2 = point_order_list_p2[i]
                     list_joueurs.remove(joueur2)
                     break
-            print(joueur2)
             resultat = Controller.resultat_match(self, tournois, joueur1["id"], joueur2["id"])
             Controller.attribution_points(self, joueur1["id"], joueur2["id"], resultat)
 
+    def algo_classement_joueurs_points(self):
+        list_joueurs = []
+        for player_id in range(len(db_joueurs)):
+            player_id = player_id + 1
+            infos_joueur = db_joueurs.get(doc_id=player_id)
+            dict_joueur = {}
+            dict_joueur["id"] = player_id
+            dict_joueur["point"] = infos_joueur["point"]
+            dict_joueur["classement"] = int(infos_joueur["classement"])
+            list_joueurs.append(dict_joueur)
+        return list_joueurs
+
     def check_duplicate_match(self, joueur1, joueur2):
+        """Check for duplicated matches"""
         # Query for both players as player1
         joueur1 = joueur1["id"]
         joueur2 = joueur2["id"]
         query_matchs_j1 = db_matchs.search(Query()["joueur1"] == joueur1)
         query_matchs_j2 = db_matchs.search(Query()["joueur1"] == joueur2)
-        print(query_matchs_j1)
-        print(query_matchs_j2)
         # Player 1 as P1 loop check
         for i in range(len(query_matchs_j1)):
             if query_matchs_j1[i]["joueur2"] == joueur2:
-                print("already played")
                 return "already played"
         # Player 2 as P1 loop check
         for i in range(len(query_matchs_j2)):
             if query_matchs_j2[i]["joueur2"] == joueur1:
-                print("already played")
                 return "already played"
-        print("never played")
         return "never played"
 
     def resultat_match(self, tournois, joueur1, joueur2):
@@ -255,13 +235,10 @@ class Controller:
         # Store the instance created, called match_model, in the db
         db_matchs.insert(match_model.__dict__)
         if resultat == "1":
-            print(f"le joueur {infos_joueur1} a gagné")
             return 1
         elif resultat == "2":
-            print(f"le joueur {infos_joueur2} a gagné")
             return 2
         else:
-            print("Match Nul")
             return 0
 
     def attribution_points(self, joueur1, joueur2, resultat):
@@ -283,7 +260,6 @@ class Controller:
 
     def tour_suivant(self, tournois_model, tournois_id):
         """Update de moins 1 le nombre de tours du tournois"""
-        print("next tour sucess")
         tournois_get = db_tournois.get(doc_id=tournois_id)
         nb_tours_diminue = tournois_get["nb_tours"] - 1
         tournois_model.nb_tours = nb_tours_diminue
@@ -292,9 +268,7 @@ class Controller:
 
     def update_classement(self, tournois):
         all_players = db_joueurs.all()
-        print(all_players)
         list_classement = tournois.input_classement(all_players)
-        print(list_classement)
         for i in list_classement:
             db_joueurs.update({"classement": i["ranking"]}, Query().nom == i["name"])
 

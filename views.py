@@ -20,6 +20,7 @@ class View:
 
     def input_data_joueurs(self):
         """Prend les données des tournois et les envoie au controleur"""
+        print("")
         nom = input("entrez le nom du joueur: ")
         prenom = input("entrez le prénom du joueur: ")
         naissance = input("entrez la date de naissance du joueur: ")
@@ -27,16 +28,9 @@ class View:
         data_joueur = {"nom": nom, "prenom": prenom, "naissance": naissance, "sexe": sexe}
         return data_joueur
 
-    def menu_principal(self):
-        """Génère le menu principal"""
-        print("- Taper \"1\" pour lancer le tournois")
-        print("- Taper \"2\" pour passer au match suivant")
-        print("- Taper \"3\" pour modifier le classement des joueurs")
-        selection = input("selection: ")
-        return selection
-
     def input_resultat_match(self, joueur1, joueur2):
         """Demande à l'utilisateur le résultat d'un match et retourne ce résultat"""
+        print("")
         print(f"joueur1: {joueur1}")
         print(f"joueur2: {joueur2}")
         resultat = None
@@ -49,7 +43,7 @@ class View:
         for i in range(len(all_players)):
             dict_classement = {}
             name_player = all_players[i]["nom"]
-            classement_player = input(f"Entrez le classement de {name_player} {all_players[i]['point']}: ")
+            classement_player = input(f"Entrez le classement de {name_player} ({all_players[i]['point']} points): ")
             dict_classement["name"] = name_player
             dict_classement["ranking"] = classement_player
             list_classement.append(dict_classement)

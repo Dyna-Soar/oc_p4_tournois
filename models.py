@@ -28,11 +28,6 @@ class Tournois:
         tournois_get = Query()
         db_tournois.update({"nb_tours": self.nb_tours}, tournois_get.nom == self.nom)
 
-
-    #def __str__(self):
-    #    return f"{self.nom} - {self.lieu} - {self.date} - {self.sexe}"
-
-
 class Joueur:
     """Classe des joueurs"""
     def __init__(self, nom, prenom, naissance, sexe, classement=0, point=0):
@@ -48,9 +43,6 @@ class Joueur:
 
     def update_db_joueur_point(self, id):
         db_joueurs.update({"point": self.point}, db_joueurs.get(doc_id=id))
-
-    #def complete(self):
-    #    return format(self.nom, self.prenom, self.naissance, self.naissance, self.sexe, self.classement)
 
     def __str__(self):
         """Retourne le nom, prénom, date de naissance et sexe de la classe sous forme de string,"""
