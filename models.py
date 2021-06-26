@@ -1,14 +1,17 @@
 from tinydb import TinyDB, Query
 
-'''Docstring'''
+'''Fichier des models'''
 
 db = TinyDB('db.json')
 db_tournois = db.table('table_tournois')
 db_joueurs = db.table('table_joueurs')
 
+
 class Tournois:
     """Classe des tournois"""
-    def __init__(self, nom, lieu, date, nb_tours=4, description="", joueurs=[]):
+    def __init__(
+            self, nom, lieu, date, nb_tours=4, description="", joueurs=[]
+    ):
         self.nom = nom
         self.lieu = lieu
         self.date = date
@@ -22,11 +25,15 @@ class Tournois:
 
     def update_db_tournois_joueurs(self):
         tournois_get = Query()
-        db_tournois.update({"joueurs": self.joueurs}, tournois_get.nom == self.nom)
+        db_tournois.update(
+            {"joueurs": self.joueurs}, tournois_get.nom == self.nom
+        )
 
     def update_db_tournois_nb_tours(self):
         tournois_get = Query()
-        db_tournois.update({"nb_tours": self.nb_tours}, tournois_get.nom == self.nom)
+        db_tournois.update(
+            {"nb_tours": self.nb_tours}, tournois_get.nom == self.nom
+        )
 
 
 class Joueur:
@@ -46,7 +53,8 @@ class Joueur:
         db_joueurs.update({"point": self.point}, db_joueurs.get(doc_id=id))
 
     def __str__(self):
-        """Retourne le nom, prénom, date de naissance et sexe de la classe sous forme de string,"""
+        """Retourne le nom, prénom, date de naissance
+        et sexe de la classe sous forme de string,"""
         return f"{self.nom} - {self.prenom} - {self.naissance} - {self.sexe}"
 
 

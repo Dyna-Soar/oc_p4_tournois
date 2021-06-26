@@ -12,6 +12,9 @@ class Controller:
     """Classe controlleur"""
     def __init__(self):
         """Instanciation initiale du controlleur"""
+        Controller.enchainement_processus(self)
+
+    def enchainement_processus(self):
         # Create an instance of the View class in views, called tournois
         tournois = View()
         # Créer le tournois
@@ -19,7 +22,11 @@ class Controller:
             tournois_model = Controller.creation_tournois(self, tournois)
         else:
             tournois_info = db_tournois.get(doc_id=1)
-            tournois_model = Tournois(tournois_info["nom"], tournois_info["lieu"], tournois_info["date"])
+            tournois_model = Tournois(
+                tournois_info["nom"],
+                tournois_info["lieu"],
+                tournois_info["date"]
+            )
         # Get id of latest tournament created
         tournois_id = len(db_tournois)
         if len(db_joueurs) > 0:
@@ -27,17 +34,21 @@ class Controller:
                 tournois_append_player = tournois_model.joueurs
                 tournois_append_player.append(i+1)
                 tournois_model.joueurs = tournois_append_player
-                Controller.creation_joueurs(self, tournois, tournois_id, tournois_model,
-                                            nb_joueurs_restant=8-len(db_joueurs))
+                Controller.creation_joueurs(
+                    self, tournois, tournois_id,
+                    tournois_model, nb_joueurs_restant=8-len(db_joueurs)
+                )
         else:
-            Controller.creation_joueurs(self, tournois, tournois_id, tournois_model)
-        if len(db_matchs) == 16:
+            Controller.creation_joueurs(
+                self, tournois, tournois_id, tournois_model
+            )
+        if len(db_matchs) >= 16:
             Controller.rapport(self, tournois)
         else:
             Controller.update_classement(self, tournois)
             Controller.creation_paires_classement(self, tournois)
             Controller.tour_suivant(self, tournois_model, tournois_id)
-            # Met les joueurs ensemble pour tous les autres tours (creation_paires_default())
+            # Créer les paires et matchs pour tours suivants
             while tournois_model.nb_tours > 0:
                 Controller.creation_paires_points(self, tournois)
                 Controller.tour_suivant(self, tournois_model, tournois_id)
@@ -46,50 +57,61 @@ class Controller:
 
     def creation_tournois(self, tournois):
         """Créer le tournois"""
-        # Store the user input of tournois info (nom, lieu, date) in the variable tournois_info
+        # Get user input
         tournois_info = tournois.input_data_tournois()
-        # Create an instance of tournois calss in models.py, called tournois_model with the return user input,
-        tournois_model = Tournois(tournois_info["nom"], tournois_info["lieu"], tournois_info["date"])
-        # Insert the current tournois_model instance of Tournois class inside the db
+        # Create an instance of tournois class
+        tournois_model = Tournois(
+            tournois_info["nom"], tournois_info["lieu"], tournois_info["date"]
+        )
+        # Insert tournament data in the db
         tournois_model.insert_db_tournois()
         return tournois_model
 
-    def creation_joueurs(self, tournois, tournois_id, tournois_model, nb_joueurs_restant=8):
+    def creation_joueurs(
+            self, tournois, tournois_id, tournois_model, nb_joueurs_restant=8
+    ):
         """Créer 8 joueurs pour le tournois"""
         for i in range(nb_joueurs_restant):
             # Prompt the user for player input via a function in the views.py
             joueur_info = tournois.input_data_joueurs()
-            # Create an instance of player, called joueur_model, with the return value of joueur_info
-            joueur_model = Joueur(joueur_info["nom"], joueur_info["prenom"], joueur_info["naissance"], joueur_info["sexe"])
+            # Create an instance of player
+            joueur_model = Joueur(
+                joueur_info["nom"], joueur_info["prenom"],
+                joueur_info["naissance"], joueur_info["sexe"]
+            )
             # Store the instance created, called joueur_model, in the db
             db_joueurs.insert(joueur_model.__dict__)
-            # Get the id of the latest player created and store the value in joueur_id
+            # Get the id of the latest player created
             joueur_id = len(db_joueurs)
-            # Get the current tournois info by id, which is now the argument tournois_id passed in the current function
+            # Get tournament data by id
             tournois_get = db_tournois.get(doc_id=tournois_id)
-            # Store the list of players from the current tournois, in the variable tournois_append_player
+            # Store the list of players in a list
             tournois_append_player = tournois_get["joueurs"]
-            # Append the id indice of the current player in the tournois_append_player list
+            # Append the id of player to a list
             tournois_append_player.append(joueur_id)
-            # Call the query() default function, in tournois_get, in order to form queries
             tournois_get = Query()
-            # Update the db, in the current tournois, with the updated list of player indice that include the current appended player id
+            # Update the db with list of players
             tournois_model.joueurs = tournois_append_player
             tournois_model.update_db_tournois_joueurs()
 
     def creation_paires_classement(self, tournois):
-        """Met les joueurs ensemble pour un premier tour, en fonction du classement"""
+        """Met les joueurs ensemble pour un premier tour,
+        en fonction du classement"""
         # joueur1_id = None
         # joueur2_id = None
         list_classement_joueurs = Controller.algo_classement_joueurs(self)
         number_of_players = len(list_classement_joueurs)
-        # Algorithme divisant la liste générale en 2 listes: une supérieure et une inférieure
-        divided_classement = Controller.algo_paires_sup_inf(self, list_classement_joueurs, number_of_players)
+        # Algorithme créant 2 listes: une supérieure et une inférieure
+        divided_classement = Controller.algo_paires_sup_inf(
+            self, list_classement_joueurs, number_of_players
+        )
         classement_sup = divided_classement["classement_sup"]
         classement_inf = divided_classement["classement_inf"]
 
         # Algorithme de génération des paires par classement
-        Controller.algo_paires_classement(self, tournois, classement_sup, classement_inf)
+        Controller.algo_paires_classement(
+            self, tournois, classement_sup, classement_inf
+        )
 
     def algo_classement_joueurs(self):
         """Retourne une liste des joueurs"""
@@ -99,12 +121,15 @@ class Controller:
             infos_joueur = db_joueurs.get(doc_id=player_id)
             dict_classement_joueurs = {}
             dict_classement_joueurs["id"] = player_id
-            dict_classement_joueurs["classement"] = int(infos_joueur["classement"])
+            dict_classement_joueurs["classement"] = int(
+                infos_joueur["classement"]
+            )
             list_classement_joueurs.append(dict_classement_joueurs)
         return list_classement_joueurs
 
     def algo_paires_sup_inf(self, list_classement_joueurs, number_of_players):
-        '''Algorithme divisant la liste générale en 2 listes: une supérieure et une inférieure'''
+        '''Algorithme divisant la liste générale
+         en 2 listes: une supérieure et une inférieure'''
         classement_sup = []
         classement_inf = []
         while len(list_classement_joueurs) != 0:
@@ -120,7 +145,9 @@ class Controller:
                         classement_sup.append(list_classement_joueurs[i])
                     list_classement_joueurs.remove(list_classement_joueurs[i])
                     break
-        divided_classement = {"classement_sup": classement_sup, "classement_inf": classement_inf}
+        divided_classement = {
+            "classement_sup": classement_sup, "classement_inf": classement_inf
+        }
         return divided_classement
 
     def algo_paires_classement(self, tournois, classement_sup, classement_inf):
@@ -146,17 +173,22 @@ class Controller:
                     joueur2_id = classement_inf[i]["id"]
                     classement_inf.remove(classement_inf[i])
                     break
-            resultat = Controller.resultat_match(self, tournois, joueur1_id, joueur2_id)
-            Controller.attribution_points(self, joueur1_id, joueur2_id, resultat)
+            resultat = Controller.resultat_match(
+                self, tournois, joueur1_id, joueur2_id
+            )
+            Controller.attribution_points(
+                self, joueur1_id, joueur2_id, resultat
+            )
 
     def creation_paires_points(self, tournois):
-        """Creation de paires en fonction des points, et classement, sans répétition d'instances de matchs"""
+        """Creation de paires en fonction des points,
+         et classement, sans répétition d'instances de matchs"""
         joueur1 = None
         joueur2 = None
         list_joueurs = Controller.algo_classement_joueurs_points(self)
         # Algorithme mettant les joueur ensemble en fonction des points
         while len(list_joueurs) > 0:
-            # First part for taking the highest point player p1 with the highest ranking
+            # First part, find the highest ranking p1
             # First loop to find the highest number of points
             highest_points = 0
             for i in range(len(list_joueurs)):
@@ -188,7 +220,9 @@ class Controller:
             optimal_order_list_p2 = []
             # First, check if already paired
             for i in range(len(list_joueurs)):
-                if Controller.check_duplicate_match(self, joueur1, list_joueurs[i]) == "never played":
+                if Controller.check_duplicate_match(
+                        self, joueur1, list_joueurs[i]
+                ) == "never played":
                     optimal_order_list_p2.append(list_joueurs[i])
             # Second, order by points
             point_order_list_p2 = []
@@ -209,8 +243,12 @@ class Controller:
                     joueur2 = point_order_list_p2[i]
                     list_joueurs.remove(joueur2)
                     break
-            resultat = Controller.resultat_match(self, tournois, joueur1["id"], joueur2["id"])
-            Controller.attribution_points(self, joueur1["id"], joueur2["id"], resultat)
+            resultat = Controller.resultat_match(
+                self, tournois, joueur1["id"], joueur2["id"]
+            )
+            Controller.attribution_points(
+                self, joueur1["id"], joueur2["id"], resultat
+            )
 
     def algo_classement_joueurs_points(self):
         """Retourne le une liste de dictionnaires des joueurs"""
@@ -265,15 +303,23 @@ class Controller:
         joueur2_get = db_joueurs.get(doc_id=joueur2)
         if resultat == 1:
             add_point = joueur1_get["point"] + 1
-            db_joueurs.update({"point": add_point}, Query().nom == joueur1_get["nom"])
+            db_joueurs.update(
+                {"point": add_point}, Query().nom == joueur1_get["nom"]
+            )
         elif resultat == 2:
             add_point = joueur2_get["point"] + 1
-            db_joueurs.update({"point": add_point}, Query().nom == joueur2_get["nom"])
+            db_joueurs.update(
+                {"point": add_point}, Query().nom == joueur2_get["nom"]
+            )
         else:
             add_point_j1 = joueur1_get["point"] + 0.5
             add_point_j2 = joueur2_get["point"] + 0.5
-            db_joueurs.update({"point": add_point_j1}, Query().nom == joueur1_get["nom"])
-            db_joueurs.update({"point": add_point_j2}, Query().nom == joueur2_get["nom"])
+            db_joueurs.update(
+                {"point": add_point_j1}, Query().nom == joueur1_get["nom"]
+            )
+            db_joueurs.update(
+                {"point": add_point_j2}, Query().nom == joueur2_get["nom"]
+            )
         return 1
 
     def tour_suivant(self, tournois_model, tournois_id):
@@ -281,7 +327,9 @@ class Controller:
         tournois_get = db_tournois.get(doc_id=tournois_id)
         nb_tours_diminue = tournois_get["nb_tours"] - 1
         tournois_model.nb_tours = nb_tours_diminue
-        db_tournois.update({"nb_tours": nb_tours_diminue}, Query().nom == tournois_get["nom"])
+        db_tournois.update(
+            {"nb_tours": nb_tours_diminue}, Query().nom == tournois_get["nom"]
+        )
         return 1
 
     def update_classement(self, tournois):
@@ -289,11 +337,17 @@ class Controller:
         all_players = db_joueurs.all()
         list_classement = tournois.input_classement(all_players)
         for i in list_classement:
-            db_joueurs.update({"classement": i["ranking"]}, Query().nom == i["name"])
+            db_joueurs.update(
+                {"classement": i["ranking"]}, Query().nom == i["name"]
+            )
 
     def rapport(self, tournois):
         """Envoie le rapport dans la view"""
         tournois_all_data = db_tournois.all()
         joueurs_all_data = db_joueurs.all()
         matchs_all_data = db_matchs.all()
-        tournois.rapport(tournois=tournois_all_data, joueurs=joueurs_all_data, matchs=matchs_all_data)
+        tournois.rapport(
+            tournois=tournois_all_data,
+            joueurs=joueurs_all_data,
+            matchs=matchs_all_data
+        )
