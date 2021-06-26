@@ -1,4 +1,3 @@
-from models import Tournois, Joueur, Match, Ronde
 from tinydb import TinyDB, Query
 from controllers import *
 
@@ -25,11 +24,12 @@ class View:
         prenom = input("entrez le prénom du joueur: ")
         naissance = input("entrez la date de naissance du joueur: ")
         sexe = input("entrez le sexe du joueur: ")
-        data_joueur = {"nom": nom, "prenom": prenom, "naissance": naissance, "sexe": sexe}
+        data_joueur = {"nom": nom, "prenom": prenom,
+                       "naissance": naissance, "sexe": sexe}
         return data_joueur
 
     def input_resultat_match(self, joueur1, joueur2):
-        """Demande à l'utilisateur le résultat d'un match et retourne ce résultat"""
+        """Retourne le résultat d'un match"""
         print("")
         print(f"joueur1: {joueur1}")
         print(f"joueur2: {joueur2}")
