@@ -13,7 +13,7 @@ class Tournois:
         self.lieu = lieu
         self.date = date
         self.nb_tours = nb_tours
-        #self.controle_du_temps = controle_du_temps
+        # self.controle_du_temps = controle_du_temps
         self.description = description
         self.joueurs = joueurs
 
@@ -27,6 +27,7 @@ class Tournois:
     def update_db_tournois_nb_tours(self):
         tournois_get = Query()
         db_tournois.update({"nb_tours": self.nb_tours}, tournois_get.nom == self.nom)
+
 
 class Joueur:
     """Classe des joueurs"""
@@ -57,7 +58,7 @@ class Match:
         self.resultat = resultat
 
 
-"""Classe des rondes"""
 class Ronde:
+    """Classe des rondes"""
     def __init__(self):
         pass
