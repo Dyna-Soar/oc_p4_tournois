@@ -13,8 +13,6 @@ class Tournois:
         self.lieu = lieu
         self.date = date
         self.nb_tours = nb_tours
-        #self.tourne = tourne
-        #self.joueurs = joueurs
         #self.controle_du_temps = controle_du_temps
         self.description = description
         self.joueurs = joueurs

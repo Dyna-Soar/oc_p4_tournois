@@ -49,7 +49,7 @@ class View:
         for i in range(len(all_players)):
             dict_classement = {}
             name_player = all_players[i]["nom"]
-            classement_player = input(f"Classement de {name_player}: ")
+            classement_player = input(f"Entrez le classement de {name_player} {all_players[i]['point']}: ")
             dict_classement["name"] = name_player
             dict_classement["ranking"] = classement_player
             list_classement.append(dict_classement)
